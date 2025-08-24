@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Build AWG for ${{ matrix.build_env.target }}/ ${{ matrix.build_env.subtarget }} (OpenWrt ${{ matrix.build_env.tag }}, arch ${{ matrix.build_env.pkgarch }})
-    runs-on: ubuntu-18.04  # Используем Ubuntu 18.04 для совместимости с OpenWrt 19.07
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
@@ -18,7 +18,6 @@ jobs:
             target: ramips
             subtarget: mt7620
             vermagic: "4.14.180"  # версия ядра вашего роутера
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,20 +25,7 @@ jobs:
           ref: v${{ matrix.build_env.tag }}
           fetch-depth: 0
 
-      - name: Установка зависимостей
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            python2 \
-            gcc-7 \
-            g++-7 \
-            libncurses5-dev \
-            zlib1g-dev \
-            libssl-dev \
-            git
-
-      - name: Настройка feed для AmneziaWG
+      - name: Setup feed for AmneziaWG
         run: |
           echo "src-git awg https://github.com/Slava-Shchipunov/awg-openwrt.git" >> feeds.conf.default
           ./scripts/feeds update awg
@@ -47,7 +33,7 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Конфигурация сборки
+      - name: Configure build
         run: |
           wget https://downloads.openwrt.org/releases/${{ matrix.build_env.tag }}/targets/${{ matrix.build_env.target}}/${{ matrix.build_env.subtarget}}/config.buildinfo -O .config
           echo "CONFIG_PACKAGE_kmod-amneziawg=m" >> .config
@@ -57,206 +43,16 @@ jobs:
           ./scripts/feeds install awg amneziawg-tools luci-app-amneziawg
           make defconfig
 
-      - name: Сборка Kernel Module & Пакетов
+      - name: Build Kernel Module & Packages
         run: |
           make -j$(nproc) V=s
 
-      - name: Сборка с принудительным обходом проверок
+      - name: Collect artifacts
         run: |
-          FORCE=1 make -j$(nproc) V=s
+          mkdir -p artifacts
+          cp bin/packages/${{ matrix.build_env.pkgarch }}/awg/*.ipk artifacts/
 
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-        run: |
-          FORCE=1 make -j$(nproc) V=s
-
-      - name: Сборка с принудительным обходом проверок
-::contentReference[oaicite:4]{index=4}
- 
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/*.ipk
