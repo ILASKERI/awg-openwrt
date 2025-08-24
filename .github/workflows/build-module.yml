@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Build AWG for ${{ matrix.build_env.target }}/ ${{ matrix.build_env.subtarget }} (OpenWrt ${{ matrix.build_env.tag }}, arch ${{ matrix.build_env.pkgarch }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04  # изменено с ubuntu-latest
 
     strategy:
       matrix:
@@ -30,7 +30,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y build-essential libncurses5-dev zlib1g-dev gawk git gettext libssl-dev wget python2 curl unzip
-          sudo ln -sf /usr/bin/python2 /usr/bin/python
+          sudo update-alternatives --install /usr/bin/python python /usr/bin/python2 1
 
       - name: Setup feed for AmneziaWG
         run: |
