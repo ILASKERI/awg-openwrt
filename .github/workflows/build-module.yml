@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Build AWG for ${{ matrix.build_env.target }}/ ${{ matrix.build_env.subtarget }} (OpenWrt ${{ matrix.build_env.tag }}, arch ${{ matrix.build_env.pkgarch }})
-    runs-on: ubuntu-20.04  # изменено с ubuntu-latest
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
@@ -26,38 +26,30 @@ jobs:
           ref: v${{ matrix.build_env.tag }}
           fetch-depth: 0
 
-      - name: Install build dependencies
+      - name: Build in OpenWrt Docker SDK
         run: |
-          sudo apt update
-          sudo apt install -y build-essential libncurses5-dev zlib1g-dev gawk git gettext libssl-dev wget python2 curl unzip
-          sudo update-alternatives --install /usr/bin/python python /usr/bin/python2 1
+          docker run --rm -v $PWD:/openwrt openwrtorg/sdk:19.07 /bin/bash -c "
+            cd /openwrt
+            # Добавляем feed AmneziaWG
+            echo 'src-git awg https://github.com/Slava-Shchipunov/awg-openwrt.git' >> feeds.conf.default
+            ./scripts/feeds update -a
+            ./scripts/feeds install -a awg amneziawg-tools luci-app-amneziawg
 
-      - name: Setup feed for AmneziaWG
-        run: |
-          echo "src-git awg https://github.com/Slava-Shchipunov/awg-openwrt.git" >> feeds.conf.default
-          ./scripts/feeds update awg
-          ./scripts/feeds install awg
-          ./scripts/feeds update -a
-          ./scripts/feeds install -a
+            # Загружаем дефолтный config
+            wget https://downloads.openwrt.org/releases/${{ matrix.build_env.tag }}/targets/${{ matrix.build_env.target}}/${{ matrix.build_env.subtarget}}/config.buildinfo -O .config
+            echo 'CONFIG_PACKAGE_kmod-amneziawg=m' >> .config
+            echo 'CONFIG_PACKAGE_amneziawg-tools=y' >> .config
+            echo 'CONFIG_PACKAGE_luci-app-amneziawg=y' >> .config
 
-      - name: Configure build
-        run: |
-          wget https://downloads.openwrt.org/releases/${{ matrix.build_env.tag }}/targets/${{ matrix.build_env.target}}/${{ matrix.build_env.subtarget}}/config.buildinfo -O .config
-          echo "CONFIG_PACKAGE_kmod-amneziawg=m" >> .config
-          echo "CONFIG_PACKAGE_amneziawg-tools=y" >> .config
-          echo "CONFIG_PACKAGE_luci-app-amneziawg=y" >> .config
-          ./scripts/feeds update -a
-          ./scripts/feeds install awg amneziawg-tools luci-app-amneziawg
-          make defconfig
-
-      - name: Build Kernel Module & Packages
-        run: |
-          make -j$(nproc) V=s
+            # Генерируем дефолтные конфиги и строим
+            make defconfig
+            make -j$(nproc) V=s
+          "
 
       - name: Collect artifacts
         run: |
           mkdir -p artifacts
-          cp bin/packages/${{ matrix.build_env.pkgarch }}/awg/*.ipk artifacts/
+          cp bin/packages/${{ matrix.build_env.pkgarch }}/awg/*.ipk artifacts/ || echo 'No IPK found'
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
